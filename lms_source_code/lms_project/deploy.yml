@@ -1,0 +1,53 @@
+---
+# Ansible Playbook — Deploy Library Management System
+# Usage: ansible-playbook deploy.yml
+
+- name: Deploy Library Management System
+  hosts: localhost
+  become: yes
+
+  vars:
+    image_name: "library-management-system"
+    container_name: "lms-app"
+    app_port: 8080
+
+  tasks:
+
+    - name: Install Java 11
+      apt:
+        name: openjdk-11-jdk
+        state: present
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull LMS Docker image
+      docker_image:
+        name: "{{ image_name }}"
+        tag: latest
+        source: pull
+
+    - name: Stop existing container (if any)
+      docker_container:
+        name: "{{ container_name }}"
+        state: absent
+      ignore_errors: yes
+
+    - name: Run LMS container
+      docker_container:
+        name: "{{ container_name }}"
+        image: "{{ image_name }}:latest"
+        state: started
+        ports:
+          - "{{ app_port }}:{{ app_port }}"
+        restart_policy: always

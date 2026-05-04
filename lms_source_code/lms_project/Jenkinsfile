@@ -1,0 +1,79 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "library-management-system"
+        CONTAINER_NAME = "lms-app"
+        APP_PORT = "8080"
+    }
+
+    stages {
+
+        // Stage 1: Clone Repository
+        stage('Clone Repository') {
+            steps {
+                echo 'Cloning source code from GitHub...'
+                git branch: 'main',
+                    url: 'https://github.com/karthikeya2425/lms.git'
+            }
+        }
+
+        // Stage 2: Build with Maven
+        stage('Build with Maven') {
+            steps {
+                echo 'Building the project with Maven...'
+                sh 'mvn clean compile'
+            }
+        }
+
+        // Stage 3: Run JUnit Tests
+        stage('Run JUnit Tests') {
+            steps {
+                echo 'Running JUnit tests...'
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        // Stage 4: Package
+        stage('Package') {
+            steps {
+                echo 'Packaging the application...'
+                sh 'mvn package -DskipTests'
+            }
+        }
+
+        // Stage 5: Docker Build
+        stage('Docker Build') {
+            steps {
+                echo 'Building Docker image...'
+                sh "docker build -t ${IMAGE_NAME}:latest ."
+            }
+        }
+
+        // Stage 6: Docker Run
+        stage('Docker Run') {
+            steps {
+                echo 'Stopping and removing old container if exists...'
+                sh "docker stop ${CONTAINER_NAME} || true"
+                sh "docker rm   ${CONTAINER_NAME} || true"
+                echo 'Starting new container...'
+                sh "docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:${APP_PORT} ${IMAGE_NAME}:latest"
+                echo 'Application is running!'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Please check the logs.'
+        }
+    }
+}
