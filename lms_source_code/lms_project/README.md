@@ -1,7 +1,7 @@
 # Library Management System (LMS)
 
 **DevOps-Based Lab Project** — CVR College of Engineering  
-**Student:** Karthikeya | **Roll No:** 24B81A6689 | **Branch:** CSM-B  
+**Student:** G.Asrith Rao | **Roll No:** 24B81A6675 | **Branch:** CSM-B  
 **Faculty:** Mr. U. Naresh | **Academic Year:** 2025–2026  
 
 ---
